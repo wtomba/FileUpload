@@ -1,42 +1,28 @@
 require.config({
 	paths: {
-		"jquery": "lib/js/jquery/jquery-1.9.1",
+		"purejquery": "lib/js/jquery/jquery-1.9.1",
 		"jquery.ui.widget": "lib/js/jquery/jquery.ui.widget",
 		"iframe-transport": "lib/js/jquery/jquery.iframe-transport",
 		"fileupload": "lib/js/jquery/jquery.fileupload",
 		"underscore": "lib/js/underscore/underscore-1.4.4",
-		"backbone": "lib/js/backbone/backbone-1.0.0",
-		"backbonedeferedview": "lib/js/backbone/backbone.defered-view-loader",
+		"purebackbone": "lib/js/backbone/backbone-1.0.0",
+		"bb-dvl": "lib/js/backbone/backbone.defered-view-loader",
 		"fileView": "views/fileview",
-		"modelFile": "models/file"
+		"modelFile": "models/file",
+		"jquery": "lib/js/jquery/jquery",
+		"backbone": "lib/js/backbone/backbone"
 	},
 	shim: {
+		jquery: {
+			deps: ["purejquery", "jquery.ui.widget", "iframe-transport", "fileupload"]
+		},
 		underscore: {
 			exports: '_'
 		},
-		backbone: {
+		purebackbone: {
 			deps: ["underscore", "jquery"],
 			exports: "Backbone"
 		},
-		backbonedeferedview: {
-			deps: ["backbone"]
-		},
-		fileupload: {
-			deps: ["jquery", "jquery.ui.widget", "iframe-transport"]
-		}
+		"bb-dvl": ["purebackbone", "underscore"]
 	}
-});
-
-require(['views/main'], function() {
-	// Reset the baseUrl of template manager
-    Backbone.TemplateManager.baseUrl = '{name}';
-	
-	var fileupload = new Backbone.FileUpload({
-        uploadUrl: 'http://upload-manager.sroze.io/upload',
-		templates: {
-			main: 'templates/fileupload.main',
-			file: 'templates/fileupload.file'
-		}
-	});
-	fileupload.renderTo($('div#manager-area'));
 });

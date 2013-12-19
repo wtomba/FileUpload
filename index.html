@@ -8,5 +8,17 @@
             <a href="doc.html">Documentation</a>
         	<div id="manager-area"></div>
         	<script data-main="bootstrap.js" type="text/javascript" src="lib/js/require/require.js"></script>
+        	<script type="text/javascript">
+				require(['views/main'], function(FileUpload) {					
+					var fileupload = new FileUpload({
+				        uploadUrl: 'http://upload-manager.sroze.io/upload',
+						templates: {
+							main: 'templates/form.html',
+							file: 'templates/file.html'
+						}
+					});
+					fileupload.renderTo($('div#manager-area'));
+				});
+        	</script>
         </body>
 </html>

@@ -3,7 +3,7 @@ define(['backbone'], function (Backbone) {
 	 * Model that represents one file
 	 * 
 	 */
-	Backbone.FileModel = Backbone.Model.extend({
+	var FileModel = Backbone.Model.extend({
 	    state: "pending",
 	    
 	    /**
@@ -118,4 +118,6 @@ define(['backbone'], function (Backbone) {
             model: Backbone.FileModel
         })
 	});
+
+	return FileModel;
 });

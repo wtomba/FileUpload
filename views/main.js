@@ -1,5 +1,8 @@
-define(['backbone', 'fileupload', 'backbonedeferedview', 'fileView', 'modelFile'], function(Backbone, Fileupload, fileView, fileModel) {
-    Backbone.FileUpload = Backbone.DeferedView.extend({
+define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileModel) {
+    // Reset the baseUrl of template manager
+    Backbone.TemplateManager.baseUrl = '{name}';
+
+    var FileUploadPlugin = Backbone.DeferedView.extend({
         // Default values. Will be overwritten/merged by the passed options.
         defaults: {
             templates: {
@@ -26,7 +29,7 @@ define(['backbone', 'fileupload', 'backbonedeferedview', 'fileView', 'modelFile'
             this.templateName = this.options.templates.main;
             
             // Instansiate the filelist
-            this.files = new Backbone.FileModel.Collection();
+            this.files = new FileModel.Collection();
             
             // Bind JqueryFileUpload
             this.uploadProcess = $('<input id="fileupload" type="file" name="files[]" multiple="multiple">').fileupload({
@@ -74,7 +77,7 @@ define(['backbone', 'fileupload', 'backbonedeferedview', 'fileView', 'modelFile'
          */
         renderFile: function (file)
         {
-            var file_view = new Backbone.FileView($.extend(this.options, {model: file}));
+            var file_view = new FileView($.extend(this.options, {model: file}));
             $('#file-list', this.el).append(file_view.deferedRender().el);
         },
         
@@ -110,7 +113,7 @@ define(['backbone', 'fileupload', 'backbonedeferedview', 'fileView', 'modelFile'
                 $.each(data.files, function (index, file_data) {
                     // Create a new filemodel with the data
                     file_data.id = that.file_id++;
-                    var file = new Backbone.FileModel({
+                    var file = new FileModel({
                         data: file_data,
                         processor: data
                     });
@@ -191,4 +194,5 @@ define(['backbone', 'fileupload', 'backbonedeferedview', 'fileView', 'modelFile'
             });
         }
     });
+    return FileUploadPlugin;
 });

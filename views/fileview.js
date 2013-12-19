@@ -1,5 +1,5 @@
-define(['backbone', 'backbonedeferedview'], function (Backbone) {
-	Backbone.FileView = Backbone.DeferedView.extend({
+define(['backbone'], function (Backbone) {
+	var FileView = Backbone.DeferedView.extend({
 
         // Set classname
         className: 'upload-manager-file row-fluid',
@@ -119,4 +119,5 @@ define(['backbone', 'backbonedeferedview'], function (Backbone) {
             return $.extend(this.getHelpers(), this.model.get('data'));
         }
     });
+    return FileView;
 });
