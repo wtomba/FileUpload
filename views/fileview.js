@@ -3,19 +3,26 @@ define(['backbone'], function (Backbone) {
 
         // Set classname
         className: 'upload-manager-file row-fluid',
+
+        events: {
+            "click button#btn-start"       : function () { this.model.start() },
+            "click button#btn-cancel"      : function () { this.model.cancel() },
+            "click button#btn-clear"       : function () { this.model.destroy() }
+
+        },
         
         initialize: function () {
             // Set the template to the filetemplate
             this.templateName = this.options.templates.file;
             
             // Bind model events
-            this.model.on('destroy', this.close, this);
-            this.model.on('fileprogress', this.updateProgress, this);
-            this.model.on('filefailed', this.hasFailed, this);
-            this.model.on('filedone', this.hasDone, this);
+            this.listenTo(this.model, "destroy", this.close);
+            this.listenTo(this.model, "fileprogress", this.updateProgress);
+            this.listenTo(this.model, "filefailed", this.hasFailed);
+            this.listenTo(this.model, "filedone", this.hasDone);
             
             // Update the view in all cases
-            this.model.on('all', this.update, this);
+            this.listenTo(this.model, "all", this.update);
         },
         
         /**
@@ -24,10 +31,8 @@ define(['backbone'], function (Backbone) {
          */
         render: function ()
         {
+            // Append the template
             $(this.el).html(this.template(this.computeData()));
-            
-            // Bind button-events
-            this.bindEvents();
             
             // Update elements
             this.update();
@@ -41,7 +46,7 @@ define(['backbone'], function (Backbone) {
         {
             var percent = parseInt(progress.loaded / progress.total * 100, 10);
             
-            $('div.progress', this.el)
+            this.$el.find('div.progress')
                 .find('.bar')
                 .css('width', percent+'%')
                 .parent()
@@ -55,7 +60,7 @@ define(['backbone'], function (Backbone) {
          */
         hasFailed: function (error)
         {
-            $('span.message', this.el).html('<i class="icon-error"></i> '+error);
+            this.$el.find('span.message').html('<i class="icon-error"></i> '+error);
         },
         
         /**
@@ -64,7 +69,7 @@ define(['backbone'], function (Backbone) {
          */
         hasDone: function (result)
         {
-            $('span.message', this.el).html('<i class="icon-success"></i> Uploaded');
+            this.$el.find('span.message').html('<i class="icon-success"></i> Uploaded');
         },
         
         /**
@@ -74,9 +79,9 @@ define(['backbone'], function (Backbone) {
         update: function ()
         {
             // Elements to be shown based on the state of the model.
-            var when_pending = $('span.size, button#btn-cancel', this.el),
-                when_running = $('div.progress, button#btn-cancel', this.el),
-                when_done = $('span.message, button#btn-clear', this.el);
+            var when_pending = this.$el.find('span.size, button#btn-cancel'),
+                when_running = this.$el.find('div.progress, button#btn-cancel'),
+                when_done = this.$el.find('span.message, button#btn-clear');
             
             if (this.model.isPending()) {
                 when_running.add(when_done).hide();
@@ -88,26 +93,6 @@ define(['backbone'], function (Backbone) {
                 when_pending.add(when_running).hide();
                 when_done.show();
             }
-        },
-        
-        /**
-         * Bind local elements events.
-         * 
-         */
-        bindEvents: function ()
-        {
-            var that = this;
-            
-            // DOM events
-            $('button#btn-cancel', this.el).click(function(){
-                that.model.cancel();
-            });
-            $('button#btn-clear', this.el).click(function(){
-                that.model.destroy();
-            });
-            $('button#btn-start', this.el).click(function(){
-                that.model.start();
-            })
         },
         
         /**

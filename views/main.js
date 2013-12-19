@@ -18,6 +18,12 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
         
         // Set classname
         className: 'upload-manager',
+
+        events: {
+            "change input#fileupload"               : "add_file",
+            "click button#cancel-uploads-button"    : "cancel_uploads",
+            "click button#start-uploads-button"     : "start_uploads"
+        },
         
         // Initializes the fileupload plugin with the passed options
         initialize: function () 
@@ -87,8 +93,8 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
          */
         update: function ()
         {
-            var show_when_files_present = $('button#cancel-uploads-button, button#start-uploads-button', this.el);
-            var show_when_files_not_present = $('#file-list .no-data', this.el);
+            var show_when_files_present = this.$el.find('button#cancel-uploads-button, button#start-uploads-button');
+            var show_when_files_not_present = this.$el.find('#file-list .no-data');
             if (this.files.length > 0) {
                 show_when_files_present.show();
                 show_when_files_not_present.hide();
@@ -117,6 +123,7 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
                         data: file_data,
                         processor: data
                     });
+                    console.log(file.get('processor'));
                     
                     // Push the file to the array
                     data.fileUploadFiles.push(file);
@@ -159,39 +166,44 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
          * 
          */
         render: function ()
-        {
+        {            
+            var that = this;
+
+            // Append the template
             $(this.el).html(this.template());
             
             // Update view
             this.update();
             
-            // Add add files handler
-            var input = $('input#fileupload', this.el), that = this;
-            input.on('change', function (){
-                that.uploadProcess.fileupload('add', {
-                    fileInput: $(this)
-                });
-                $(this).val('');
-            });
-            
-            // Add cancel all handler
-            $('button#cancel-uploads-button', this.el).click(function(){
-                that.files.each(function(file){
-                    file.cancel();
-                });
-            });
-            
-            // Add start uploads handler
-            $('button#start-uploads-button', this.el).click(function(){
-                that.files.each(function(file){
-                    file.start();
-                });
-            });
-            
             // Render current files
             $.each(this.files, function (i, file) {
                 that.renderFile(file);
             });
+        },
+
+        // When a file is selected in the input
+        add_file: function () {
+            var input = this.$el.find('input#fileupload'), that = this;
+            this.uploadProcess.fileupload('add', {
+                fileInput: $(input)
+            });
+            // Clear the input
+            $(input).val('');
+        },
+
+        // When the cancel-button is pressed
+        cancel_uploads: function () {
+            // SOMETHING IS NOT WORKING HERE
+            this.files.each(function(file){
+                file.cancel();
+            });
+        },
+
+        // When the start-button is pressed
+        start_uploads: function () {
+            this.files.each(function(file){
+                file.start();
+            });            
         }
     });
     return FileUploadPlugin;
