@@ -1,4 +1,4 @@
-define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileModel) {
+define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], function(Backbone, FileView, FileModel, FileList, FileCollection) {
     // Reset the baseUrl of template manager
     Backbone.TemplateManager.baseUrl = '{name}';
 
@@ -13,9 +13,6 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
             autoUpload: false
         },
         
-        // Used to identify the files
-        file_id: 0,
-        
         // Set classname
         className: 'upload-manager',
 
@@ -28,6 +25,8 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
         // Initializes the fileupload plugin with the passed options
         initialize: function () 
         {
+            _.bindAll(this);
+
             // Merges the default options with the passed options
             this.options = $.extend(this.defaults, this.options);
             
@@ -35,7 +34,10 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
             this.templateName = this.options.templates.main;
             
             // Instansiate the filelist
-            this.files = new FileModel.Collection();
+            this.files = new FileCollection();
+
+            // List where uploaded items will be saved to the local storage
+            this.storedFiles = new FileCollection();
             
             // Bind JqueryFileUpload
             this.uploadProcess = $('<input id="fileupload" type="file" name="files[]" multiple="multiple">').fileupload({
@@ -47,34 +49,6 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
             
             // Add process events
             this.bindProcessEvents();
-            
-            // Add local events
-            this.bindLocal();
-        },
-        
-        /**
-         * Bind local events.
-         * 
-         */
-        bindLocal: function ()
-        {
-            var that = this;
-            this.on('fileadd', function (file) {
-                // Add the file to the filelist
-                that.files.add(file);
-                
-                // Render the fileview
-                that.renderFile(file);
-            }).on('fileprogress', function (file, progress) {
-                file.progress(progress);
-            }).on('filefail', function (file, error) {
-                file.fail(error);
-            }).on('filedone', function (file, data) {
-                file.done(data.result);
-            });
-            
-            // Update the main view after all events
-            this.files.on('all', this.update, this);
         },
         
         /**
@@ -85,6 +59,11 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
         {
             var file_view = new FileView($.extend(this.options, {model: file}));
             $('#file-list', this.el).append(file_view.deferedRender().el);
+        },
+
+        renderFileList: function () {            
+            var file_list = new FileList($.extend(this.options, {collection: this.storedFiles}));
+            $('.files', this.el).html(file_list.deferedRender().el);
         },
         
         /**
@@ -105,59 +84,91 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
         },
         
         /**
-         * Bind events on the upload processor.
+         * Bind events on the upload processor that triggers events in this view
          * 
          */
         bindProcessEvents: function ()
         {
             var that = this;
             this.uploadProcess.on('fileuploadadd', function (e, data) {
-                // An array where the files will be stored
-                data.fileUploadFiles = [];
-                
-                // When a file is added
-                $.each(data.files, function (index, file_data) {
-                    // Create a new filemodel with the data
-                    file_data.id = that.file_id++;
-                    var file = new FileModel({
-                        data: file_data,
-                        processor: data
-                    });
-                    console.log(file.get('processor'));
-                    
-                    // Push the file to the array
-                    data.fileUploadFiles.push(file);
-                    
-                    // Trigger event
-                    that.trigger('fileadd', file);
-                });
+                that.fileUploadAdd(e, data);
             }).on('fileuploadprogress', function (e, data) {
-                $.each(data.fileUploadFiles, function (index, file) {
-                    that.trigger('fileprogress', file, data);
-                });
+                that.fileUploadProgress(e, data);
             }).on('fileuploadfail', function (e, data) {
-                $.each(data.fileUploadFiles, function (index, file) {
-                    var error = "Unknown error";
-                    if (typeof data.errorThrown == "string") {
-                        error = data.errorThrown;
-                    } else if (typeof data.errorThrown == "object") {
-                        error = data.errorThrown.message;
-                    } else if (data.result) {
-                        if (data.result.error) {
-                            error = data.result.error;
-                        } else if (data.result.files && data.result.files[index] && data.result.files[index].error) {
-                            error = data.result.files[index].error;
-                        } else {
-                            error = "Unknown remote error";
-                        }
-                    }
-                    
-                    that.trigger('filefail', file, error);
-                });
+                that.fileUploadFail(e, data);
             }).on('fileuploaddone', function (e, data) {
-                $.each(data.fileUploadFiles, function (index, file) {
-                    that.trigger('filedone', file, data);
+                that.fileUploadDone(e, data);
+            });
+
+            // Update the main view after all events
+            this.listenTo(this.files, 'all', this.update);
+        },
+
+        fileUploadAdd: function (e, data) {
+            var that = this;
+
+            // An array where the files will be stored
+            data.fileUploadFiles = [];
+            
+            // When a file is added
+            $.each(data.files, function (index, file_data) {
+                // Create a new filemodel with the data
+                var file = new FileModel({
+                    data: file_data,
+                    processor: data
                 });
+                
+                // Push the file to the array
+                data.fileUploadFiles.push(file);
+                
+                // Add the file temporarily to the file list (add wont cause it to save to the local storage)
+                that.files.add(file);
+
+                // Render the fileview
+                that.renderFile(file);         
+            });
+        },
+
+        fileUploadProgress: function (e, data) {
+            $.each(data.fileUploadFiles, function (index, file) {
+                file.progress(data);
+            });
+        },
+
+        fileUploadFail: function (e, data) {
+            $.each(data.fileUploadFiles, function (index, file) {
+                var error = "Unknown error";
+                if (typeof data.errorThrown == "string") {
+                    error = data.errorThrown;
+                } else if (typeof data.errorThrown == "object") {
+                    error = data.errorThrown.message;
+                } else if (data.result) {
+                    if (data.result.error) {
+                        error = data.result.error;
+                    } else if (data.result.files && data.result.files[index] && data.result.files[index].error) {
+                        error = data.result.files[index].error;
+                    } else {
+                        error = "Unknown remote error";
+                    }
+                }
+
+                // Call fail function on the file.                
+                file.fail(error);
+            });
+        },
+
+        fileUploadDone: function (e, data) {
+            var that = this;
+
+            $.each(data.fileUploadFiles, function (index, file) {
+                var new_file = file.attributes.data;
+                file.done(data.result);
+
+                // Create the file to the list so it saves to the localstorage
+                that.storedFiles.create(new_file);
+                that.renderFileList();
+
+                window.setTimeout(function () { file.destroy(); }, 800);
             });
         },
         
@@ -179,11 +190,14 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
             $.each(this.files, function (i, file) {
                 that.renderFile(file);
             });
+
+            // Render the files from the local storage
+            this.renderFileList();
         },
 
         // When a file is selected in the input
         add_file: function () {
-            var input = this.$el.find('input#fileupload'), that = this;
+            var input = this.$el.find('input#fileupload')
             this.uploadProcess.fileupload('add', {
                 fileInput: $(input)
             });
@@ -194,14 +208,15 @@ define(['backbone', 'fileView', 'modelFile'], function(Backbone, FileView, FileM
         // When the cancel-button is pressed
         cancel_uploads: function () {
             // SOMETHING IS NOT WORKING HERE
-            this.files.each(function(file){
+            console.log(this.files.models);
+            _.each(this.files.models, function (file) {
                 file.cancel();
             });
         },
 
         // When the start-button is pressed
         start_uploads: function () {
-            this.files.each(function(file){
+            _.each(this.files.models, function (file) {
                 file.start();
             });            
         }

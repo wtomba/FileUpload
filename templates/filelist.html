@@ -1,0 +1,27 @@
+<div class="file-list">
+	<h3>Uploaded files:</h3>
+	<table class="table table-bordered table-hover">
+		<tr>
+			<th>Name</th>
+			<th>File size</th>
+			<th>File type</th>
+			<th>Uploaded at</th>
+			<th></th>
+		</tr>
+		<% if (collection.length > 0) { %>
+			<% _.each(collection, function(file) { %>
+				<tr id='<%= file.id %>' class="table_file">
+					<td><%= file.name %></td>
+					<td><%= file.size %></td>
+					<td><%= file.type %></td>
+					<td><%= file.lastModifiedDate %></td>
+					<td><button class="btn-warning delete_file" id='<%= file.id%>'>Delete</button></td>
+				</tr>
+			<%	}); %>
+		<% } else { %>
+			<tr>
+				<td colspan="5" style="text-align:center;">No files</td>
+			</tr>
+		<% } %>
+	</table>
+</div>

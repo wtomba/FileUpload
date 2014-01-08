@@ -7,8 +7,12 @@ require.config({
 		"underscore": "lib/js/underscore/underscore-1.4.4",
 		"purebackbone": "lib/js/backbone/backbone-1.0.0",
 		"bb-dvl": "lib/js/backbone/backbone.defered-view-loader",
+		"bb-ls": "lib/js/backbone/backbone.localStorage-min",
+		"router": "routes",
 		"fileView": "views/fileview",
+		"fileList": "views/filelist",
 		"modelFile": "models/file",
+		"fileCollection": "collections/files",
 		"jquery": "lib/js/jquery/jquery",
 		"backbone": "lib/js/backbone/backbone"
 	},
@@ -23,6 +27,8 @@ require.config({
 			deps: ["underscore", "jquery"],
 			exports: "Backbone"
 		},
-		"bb-dvl": ["purebackbone", "underscore"]
+		"bb-dvl": ["purebackbone", "underscore"],
+		"bb-ls": ["purebackbone", "underscore"],
+		"router": ["purebackbone", "underscore"]
 	}
 });

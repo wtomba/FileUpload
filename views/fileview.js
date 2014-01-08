@@ -12,10 +12,12 @@ define(['backbone'], function (Backbone) {
         },
         
         initialize: function () {
+            _.bindAll(this);
+            
             // Set the template to the filetemplate
             this.templateName = this.options.templates.file;
             
-            // Bind model events
+            // Listen to model events
             this.listenTo(this.model, "destroy", this.close);
             this.listenTo(this.model, "fileprogress", this.updateProgress);
             this.listenTo(this.model, "filefailed", this.hasFailed);
@@ -69,8 +71,7 @@ define(['backbone'], function (Backbone) {
          */
         hasDone: function (result)
         {
-            this.$el.find('span.message').html('<i class="icon-success"></i> Uploaded');
-        },
+            this.$el.find('span.message').html('<i class="icon-success"></i> Uploaded');        },
         
         /**
          * Update the necessary parts of the view.
