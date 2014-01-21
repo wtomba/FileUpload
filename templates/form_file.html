@@ -1,0 +1,20 @@
+<div class="span6">
+	<span class="name"><%= name %></span>
+</div>
+<div class="span3">
+    <span class="size"><%= displaySize(size) %></span>
+    <div class="progress hidden">
+        <div class="progress-label"></div>
+        <div class="bar"></div>
+    </div>
+    <% if (error_message) { %>
+        <span class="message"><%= error_message %></span>
+    <% } else { %>
+        <span class="message hidden"></span>
+    <% } %>
+</div>
+<div class="span3">
+	<button class="btn btn-success" id="btn-start">Start</button>
+    <button class="btn btn-warning" id="btn-cancel"><i class="icon-remove"></i>Cancel</button>
+    <button class="btn" id="btn-clear">Clear</button>
+</div>

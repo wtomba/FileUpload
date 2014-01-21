@@ -1,4 +1,4 @@
-define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], function(Backbone, FileView, FileModel, FileList, FileCollection) {
+define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'], function(Backbone, FormFile, FileModel, FileCollection) {
     // Reset the baseUrl of template manager
     Backbone.TemplateManager.baseUrl = '{name}';
 
@@ -35,9 +35,8 @@ define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], func
             
             // Instansiate the filelist
             this.files = new FileCollection();
-
-            // List where uploaded items will be saved to the local storage
-            this.storedFiles = new FileCollection();
+            this.collection = new FileCollection();
+            this.collection.get_files();
             
             // Bind JqueryFileUpload
             this.uploadProcess = $('<input id="fileupload" type="file" name="files[]" multiple="multiple">').fileupload({
@@ -57,13 +56,8 @@ define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], func
          */
         renderFile: function (file)
         {
-            var file_view = new FileView($.extend(this.options, {model: file}));
+            var file_view = new FormFile($.extend(this.options, {model: file}));
             $('#file-list', this.el).append(file_view.deferedRender().el);
-        },
-
-        renderFileList: function () {            
-            var file_list = new FileList($.extend(this.options, {collection: this.storedFiles}));
-            $('.files', this.el).html(file_list.deferedRender().el);
         },
         
         /**
@@ -84,7 +78,7 @@ define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], func
         },
         
         /**
-         * Bind events on the upload processor that triggers events in this view
+         * Bind events on the upload processor
          * 
          */
         bindProcessEvents: function ()
@@ -104,19 +98,38 @@ define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], func
             this.listenTo(this.files, 'all', this.update);
         },
 
+        // Handles the add event triggered by the upload processor
         fileUploadAdd: function (e, data) {
             var that = this;
+            var acceptedTypes = /(\.|\/)(gif|jpe?g|png|svg)$/i;
 
             // An array where the files will be stored
             data.fileUploadFiles = [];
             
             // When a file is added
             $.each(data.files, function (index, file_data) {
+                // Get the image data from the input
+                var reader = new FileReader();
+
+                // Get the data of the file
+                reader.onload = function(frEvent) {
+                    file_data.file_data = frEvent.target.result;
+                }
+                reader.readAsDataURL(file_data);      
+
                 // Create a new filemodel with the data
                 var file = new FileModel({
                     data: file_data,
                     processor: data
-                });
+                });          
+                
+                // Some custum validation
+                if (file_data['type'].length && !acceptedTypes.test(file_data['type'])) {
+                    file.attributes.data.error_message = "Filetype not allowed";
+                    file.fail("Filetype not allowed");
+                } else {                    
+                    file.attributes.data.error_message = null;
+                }
                 
                 // Push the file to the array
                 data.fileUploadFiles.push(file);
@@ -124,17 +137,18 @@ define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], func
                 // Add the file temporarily to the file list (add wont cause it to save to the local storage)
                 that.files.add(file);
 
-                // Render the fileview
-                that.renderFile(file);         
+                that.renderFile(file);
             });
         },
 
+        // Handles the progress event triggered by the processor
         fileUploadProgress: function (e, data) {
             $.each(data.fileUploadFiles, function (index, file) {
                 file.progress(data);
             });
         },
 
+        // Handles the fail event triggered by the processor
         fileUploadFail: function (e, data) {
             $.each(data.fileUploadFiles, function (index, file) {
                 var error = "Unknown error";
@@ -157,6 +171,7 @@ define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], func
             });
         },
 
+        // Handles the done event triggered by the processor
         fileUploadDone: function (e, data) {
             var that = this;
 
@@ -165,10 +180,7 @@ define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], func
                 file.done(data.result);
 
                 // Create the file to the list so it saves to the localstorage
-                that.storedFiles.create(new_file);
-                that.renderFileList();
-
-                window.setTimeout(function () { file.destroy(); }, 800);
+                that.collection.create(new_file);
             });
         },
         
@@ -190,9 +202,6 @@ define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], func
             $.each(this.files, function (i, file) {
                 that.renderFile(file);
             });
-
-            // Render the files from the local storage
-            this.renderFileList();
         },
 
         // When a file is selected in the input
@@ -208,7 +217,6 @@ define(['backbone', 'fileView', 'modelFile', 'fileList', 'fileCollection'], func
         // When the cancel-button is pressed
         cancel_uploads: function () {
             // SOMETHING IS NOT WORKING HERE
-            console.log(this.files.models);
             _.each(this.files.models, function (file) {
                 file.cancel();
             });

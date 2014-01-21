@@ -1,14 +1,9 @@
-<div class="span6"><span class="name"><%= name %></span></div>
-<div class="span3">
-    <span class="size"><%= displaySize(size) %></span>
-    <div class="progress hidden">
-        <div class="progress-label"></div>
-        <div class="bar"></div>
-    </div>
-    <span class="message hidden"></span>
+<button class="btn-warning delete-file">Delete</button><h3><%= model.attributes.name %></h3>
+<div class="span4 file-info">
+	<p>Size: <%= model.attributes.size %>kb</p>
+	<p>Type: <%= model.attributes.type %></p>
+	<p>Uploaded at: <%= model.attributes.lastModifiedDate %></p>
 </div>
-<div class="span3">
-	<button class="btn btn-success" id="btn-start">Start</button>
-    <button class="btn btn-warning" id="btn-cancel"><i class="icon-remove"></i>Cancel</button>
-    <button class="btn" id="btn-clear">Clear</button>
+<div class="span6 file-image">
+	<a href="<%= model.attributes.file_data %>"><img class="img-polaroid" src="<%= model.attributes.file_data %>" /></a>
 </div>

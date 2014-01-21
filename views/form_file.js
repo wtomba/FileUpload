@@ -1,5 +1,5 @@
 define(['backbone'], function (Backbone) {
-	var FileView = Backbone.DeferedView.extend({
+	var FormFile = Backbone.DeferedView.extend({
 
         // Set classname
         className: 'upload-manager-file row-fluid',
@@ -15,7 +15,7 @@ define(['backbone'], function (Backbone) {
             _.bindAll(this);
             
             // Set the template to the filetemplate
-            this.templateName = this.options.templates.file;
+            this.templateName = this.options.templates.form_file;
             
             // Listen to model events
             this.listenTo(this.model, "destroy", this.close);
@@ -71,7 +71,8 @@ define(['backbone'], function (Backbone) {
          */
         hasDone: function (result)
         {
-            this.$el.find('span.message').html('<i class="icon-success"></i> Uploaded');        },
+            this.$el.find('span.message').html('<i class="icon-success"></i> Uploaded');
+        },
         
         /**
          * Update the necessary parts of the view.
@@ -80,19 +81,17 @@ define(['backbone'], function (Backbone) {
         update: function ()
         {
             // Elements to be shown based on the state of the model.
-            var when_pending = this.$el.find('span.size, button#btn-cancel'),
-                when_running = this.$el.find('div.progress, button#btn-cancel'),
-                when_done = this.$el.find('span.message, button#btn-clear');
+            var when_pending = this.$el.find('span.size, button#btn-cancel, button#btn-start'),
+                when_running = this.$el.find('div.progress, button#btn-cancel')
             
             if (this.model.isPending()) {
-                when_running.add(when_done).hide();
+                when_running.hide();
                 when_pending.show();
             } else if (this.model.isRunning()) {
-                when_pending.add(when_done).hide();
+                when_pending.hide();
                 when_running.show();
             } else if (this.model.isDone() || this.model.isError()) {
                 when_pending.add(when_running).hide();
-                when_done.show();
             }
         },
         
@@ -105,5 +104,5 @@ define(['backbone'], function (Backbone) {
             return $.extend(this.getHelpers(), this.model.get('data'));
         }
     });
-    return FileView;
+    return FormFile;
 });

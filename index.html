@@ -3,24 +3,31 @@
         <head>
                 <title>FileUpload</title>
                 <link rel="stylesheet" href="lib/css/bootstrap-2.3.1.css"></link>
+                <link rel="stylesheet" href="lib/css/style.css"></link>
         </head>
         <body>
-            <a href="doc.html">Documentation</a>
-        	<div id="manager-area"></div>
+            <div class="container">
+                <ul class="nav nav-tabs nav-justified">
+                    <li class="menu-item active"><a href="#">Upload</a></li>
+                    <li class="menu-item"><a href="#files">Uploaded files</a></li>
+                    <li class="menu-item"><a href="doc.html">Documentation</a></li>
+                </ul>
+            </div>
+        	<div id="manager-area" class="container">
+            <img src='lib/css/images/loading.gif' class="loading" />
+            </div>
         	<script data-main="bootstrap.js" type="text/javascript" src="lib/js/require/require.js"></script>
-        	<script type="text/javascript">
-				require(['views/main'], function(FileUpload) {
+        	<script type="text/javascript">                
+                require(["routes"], function (Router) {
+                    // Instansiate the router
+                    var router = new Router();
 
-					var fileupload = new FileUpload({
-				        uploadUrl: 'http://upload-manager.sroze.io/upload',
-						templates: {
-							main: 'templates/form.html',
-							file: 'templates/file.html',
-                            fileList: 'templates/filelist.html'
-						}
-					});
-					fileupload.renderTo($('div#manager-area'));
-				});
+                    // Sets active class for the main menu
+                    $(".menu-item").click(function (e) {
+                        $(".active").removeClass("active");
+                        $(e.target).parent().addClass("active");
+                    });
+                });
         	</script>
         </body>
 </html>

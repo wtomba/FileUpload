@@ -1,0 +1,64 @@
+.container {
+	margin-bottom: -20px !important;
+}
+
+#manager-area {
+	position: relative;
+	padding: 0px 0px 20px 0px;
+	box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+	border-bottom: 1px solid #ccc;
+}
+
+.loading {
+	display: block;
+	width: 200px;
+	margin: 20px auto 0px auto;
+}
+
+.bar {
+	margin-top: -20px !important;
+}
+
+.file {
+	padding-left: 10px;
+	padding-bottom: 10px;
+}
+	.file-image {
+		padding: 0px 30px 30px 30px;
+	}
+	.delete-file {
+		float: right;
+		margin-top: 7px;
+	}
+
+.file-list {
+	padding-left: 10px;
+	padding-bottom: 10px;
+}
+	.file-list-item {
+		position: relative;
+		color: #6D6A6A;
+		margin-top: 10px;
+		border-radius: 3px;
+		background: #FCFCFC;
+		min-height: 180px;
+		padding: .5em;
+		box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+		border-bottom: 1px solid #ccc;
+		transition: all .2s ease-in-out;
+	}
+	.file-list-item:hover {
+		cursor: pointer;
+		box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+	}
+
+.file_image {
+	width: 100%;
+}
+
+.upload_date {
+	position: absolute;
+	right: 6px;
+	bottom: 2px;
+	size: 6px;
+}

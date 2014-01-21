@@ -1,0 +1,17 @@
+<h3>Uploaded files:</h3>
+<% if (collection.length > 0) { %>
+	<% _.each(collection, function(file) { %>
+		<div id="<%= file.id %>" class="file-list-item span2" href='#files/<%= file.id %>' >
+			<h4><%= file.name %></h4>
+			<img class="file_image" src="<%= file.file_data %>" />
+			<span class="upload_date">
+				<%= new Date(Date.parse(file.lastModifiedDate)).toLocaleString() %>
+			</span>
+		</tr>
+		</div>
+	<%	}); %>
+<% } else { %>
+	<div class="no-data">
+		<em>No files</em>
+	</div>
+<% } %>
