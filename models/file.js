@@ -1,9 +1,10 @@
 define(['backbone'], function (Backbone) {
 	/**
 	 * Model that represents one file
+	 * Events are triggered for the fileview to listen to
 	 * 
 	 */
-	Backbone.FileModel = Backbone.Model.extend({
+	var FileModel = Backbone.Model.extend({
 	    state: "pending",
 	    
 	    /**
@@ -27,7 +28,9 @@ define(['backbone'], function (Backbone) {
 	     */
 	    cancel: function () 
 	    {
-	        this.get('processor').abort();
+	    	if (this.get('processor')) {
+	        	this.get('processor').abort();
+	    	}
 	        this.destroy();
 	        
 	        // Set modelstate and trigger event
@@ -111,11 +114,7 @@ define(['backbone'], function (Backbone) {
 	    {
 	        return this.state;
 	    }
-	}, {
-
-		// Represents a collection of files
-		Collection: Backbone.Collection.extend({
-            model: Backbone.FileModel
-        })
 	});
+
+	return FileModel;
 });

@@ -1,21 +1,30 @@
-define(['backbone', 'backbonedeferedview'], function (Backbone) {
-	Backbone.FileView = Backbone.DeferedView.extend({
+define(['backbone'], function (Backbone) {
+	var FormFile = Backbone.DeferedView.extend({
 
         // Set classname
         className: 'upload-manager-file row-fluid',
+
+        events: {
+            "click button#btn-start"       : function () { this.model.start() },
+            "click button#btn-cancel"      : function () { this.model.cancel() },
+            "click button#btn-clear"       : function () { this.model.destroy() }
+
+        },
         
         initialize: function () {
-            // Set the template to the filetemplate
-            this.templateName = this.options.templates.file;
+            _.bindAll(this);
             
-            // Bind model events
-            this.model.on('destroy', this.close, this);
-            this.model.on('fileprogress', this.updateProgress, this);
-            this.model.on('filefailed', this.hasFailed, this);
-            this.model.on('filedone', this.hasDone, this);
+            // Set the template to the filetemplate
+            this.templateName = this.options.templates.form_file;
+            
+            // Listen to model events
+            this.listenTo(this.model, "destroy", this.close);
+            this.listenTo(this.model, "fileprogress", this.updateProgress);
+            this.listenTo(this.model, "filefailed", this.hasFailed);
+            this.listenTo(this.model, "filedone", this.hasDone);
             
             // Update the view in all cases
-            this.model.on('all', this.update, this);
+            this.listenTo(this.model, "all", this.update);
         },
         
         /**
@@ -24,10 +33,8 @@ define(['backbone', 'backbonedeferedview'], function (Backbone) {
          */
         render: function ()
         {
+            // Append the template
             $(this.el).html(this.template(this.computeData()));
-            
-            // Bind button-events
-            this.bindEvents();
             
             // Update elements
             this.update();
@@ -41,7 +48,7 @@ define(['backbone', 'backbonedeferedview'], function (Backbone) {
         {
             var percent = parseInt(progress.loaded / progress.total * 100, 10);
             
-            $('div.progress', this.el)
+            this.$el.find('div.progress')
                 .find('.bar')
                 .css('width', percent+'%')
                 .parent()
@@ -55,7 +62,7 @@ define(['backbone', 'backbonedeferedview'], function (Backbone) {
          */
         hasFailed: function (error)
         {
-            $('span.message', this.el).html('<i class="icon-error"></i> '+error);
+            this.$el.find('span.message').html('<i class="icon-error"></i> '+error);
         },
         
         /**
@@ -64,7 +71,7 @@ define(['backbone', 'backbonedeferedview'], function (Backbone) {
          */
         hasDone: function (result)
         {
-            $('span.message', this.el).html('<i class="icon-success"></i> Uploaded');
+            this.$el.find('span.message').html('<i class="icon-success"></i> Uploaded');
         },
         
         /**
@@ -74,40 +81,18 @@ define(['backbone', 'backbonedeferedview'], function (Backbone) {
         update: function ()
         {
             // Elements to be shown based on the state of the model.
-            var when_pending = $('span.size, button#btn-cancel', this.el),
-                when_running = $('div.progress, button#btn-cancel', this.el),
-                when_done = $('span.message, button#btn-clear', this.el);
+            var when_pending = this.$el.find('span.size, button#btn-cancel, button#btn-start'),
+                when_running = this.$el.find('div.progress, button#btn-cancel')
             
             if (this.model.isPending()) {
-                when_running.add(when_done).hide();
+                when_running.hide();
                 when_pending.show();
             } else if (this.model.isRunning()) {
-                when_pending.add(when_done).hide();
+                when_pending.hide();
                 when_running.show();
             } else if (this.model.isDone() || this.model.isError()) {
                 when_pending.add(when_running).hide();
-                when_done.show();
             }
-        },
-        
-        /**
-         * Bind local elements events.
-         * 
-         */
-        bindEvents: function ()
-        {
-            var that = this;
-            
-            // DOM events
-            $('button#btn-cancel', this.el).click(function(){
-                that.model.cancel();
-            });
-            $('button#btn-clear', this.el).click(function(){
-                that.model.destroy();
-            });
-            $('button#btn-start', this.el).click(function(){
-                that.model.start();
-            })
         },
         
         /**
@@ -119,4 +104,5 @@ define(['backbone', 'backbonedeferedview'], function (Backbone) {
             return $.extend(this.getHelpers(), this.model.get('data'));
         }
     });
+    return FormFile;
 });
