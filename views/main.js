@@ -89,7 +89,6 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
                 }
                 reader.readAsDataURL(file_data);      
 
-                // Create a new filemodel with the data
                 var file = new FileModel({
                     data: file_data,
                     processor: data
@@ -102,8 +101,7 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
                 } else {                    
                     file.attributes.data.error_message = null;
                 }
-                
-                // Push the file to the array
+
                 data.fileUploadFiles.push(file);
                 
                 // Add the file temporarily to the file list (add wont cause it to save to the local storage)
@@ -113,14 +111,12 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
             });
         },
 
-        // Handles the progress event triggered by the processor
         fileUploadProgress: function (e, data) {
             $.each(data.fileUploadFiles, function (index, file) {
                 file.progress(data);
             });
         },
 
-        // Handles the fail event triggered by the processor
         fileUploadFail: function (e, data) {
             $.each(data.fileUploadFiles, function (index, file) {
                 var error = "Unknown error";
@@ -136,14 +132,11 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
                     } else {
                         error = "Unknown remote error";
                     }
-                }
-
-                // Call fail function on the file.                
+                }               
                 file.fail(error);
             });
         },
 
-        // Handles the done event triggered by the processor
         fileUploadDone: function (e, data) {
             var that = this;
 
@@ -155,21 +148,14 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
                 that.collection.create(new_file);
             });
         },
-        
-        /**
-         * Render the main part of the FileUpload.
-         * 
-         */
+
         render: function () {            
             var that = this;
 
-            // Append the template
             $(this.el).html(this.template());
-            
-            // Update view
+
             this.update();
             
-            // Render current files
             this.files.each(function (i, file) {
                 that.renderFile(file);
             });
