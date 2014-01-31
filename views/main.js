@@ -1,6 +1,4 @@
 define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'], function(Backbone, FormFile, FileModel, FileCollection) {
-    // Reset the baseUrl of template manager
-    Backbone.TemplateManager.baseUrl = '{name}';
 
     var FileUploadPlugin = Backbone.DeferedView.extend({
         // Default values. Will be overwritten/merged by the passed options.
@@ -12,8 +10,6 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
             uploadUrl: '/upload',
             autoUpload: false
         },
-        
-        // Set classname
         className: 'upload-manager',
 
         events: {
@@ -22,23 +18,16 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
             "click button#start-uploads-button"     : "start_uploads"
         },
         
-        // Initializes the fileupload plugin with the passed options
-        initialize: function () 
-        {
+        initialize: function () {
             _.bindAll(this);
 
             // Merges the default options with the passed options
             this.options = $.extend(this.defaults, this.options);
-            
-            // Set the template name
             this.templateName = this.options.templates.main;
             
-            // Instansiate the filelist
+            // Instansiate a filelist that will hold the files that haven't been uploaded.
             this.files = new FileCollection();
-            this.collection = new FileCollection();
-            this.collection.get_files();
             
-            // Bind JqueryFileUpload
             this.uploadProcess = $('<input id="fileupload" type="file" name="files[]" multiple="multiple">').fileupload({
                 dataType: 'json',
                 url: this.options.uploadUrl,
@@ -46,26 +35,16 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
                 singleFileUploads: true
             });
             
-            // Add process events
+            // Bind the events that are triggered by JqueryFileUpload
             this.bindProcessEvents();
         },
-        
-        /**
-         * Renders a file.
-         * 
-         */
-        renderFile: function (file)
-        {
+
+        renderFile: function (file) {
             var file_view = new FormFile($.extend(this.options, {model: file}));
             $('#file-list', this.el).append(file_view.deferedRender().el);
         },
-        
-        /**
-         * Update the necessary parts of the view
-         * 
-         */
-        update: function ()
-        {
+
+        update: function () {
             var show_when_files_present = this.$el.find('button#cancel-uploads-button, button#start-uploads-button');
             var show_when_files_not_present = this.$el.find('#file-list .no-data');
             if (this.files.length > 0) {
@@ -76,13 +55,8 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
                 show_when_files_not_present.show();
             }
         },
-        
-        /**
-         * Bind events on the upload processor
-         * 
-         */
-        bindProcessEvents: function ()
-        {
+
+        bindProcessEvents: function () {
             var that = this;
             this.uploadProcess.on('fileuploadadd', function (e, data) {
                 that.fileUploadAdd(e, data);
@@ -98,15 +72,13 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
             this.listenTo(this.files, 'all', this.update);
         },
 
-        // Handles the add event triggered by the upload processor
         fileUploadAdd: function (e, data) {
             var that = this;
             var acceptedTypes = /(\.|\/)(gif|jpe?g|png|svg)$/i;
 
             // An array where the files will be stored
             data.fileUploadFiles = [];
-            
-            // When a file is added
+
             $.each(data.files, function (index, file_data) {
                 // Get the image data from the input
                 var reader = new FileReader();
@@ -123,7 +95,7 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
                     processor: data
                 });          
                 
-                // Some custum validation
+                // Some custom validation
                 if (file_data['type'].length && !acceptedTypes.test(file_data['type'])) {
                     file.attributes.data.error_message = "Filetype not allowed";
                     file.fail("Filetype not allowed");
@@ -188,8 +160,7 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
          * Render the main part of the FileUpload.
          * 
          */
-        render: function ()
-        {            
+        render: function () {            
             var that = this;
 
             // Append the template
@@ -199,32 +170,29 @@ define(['backbone', 'form_file', 'file_model', 'file_collection', 'fileupload'],
             this.update();
             
             // Render current files
-            $.each(this.files, function (i, file) {
+            this.files.each(function (i, file) {
                 that.renderFile(file);
             });
         },
 
-        // When a file is selected in the input
+        // When a file is selected in the input get the inputfield and trigger the add file event.
         add_file: function () {
             var input = this.$el.find('input#fileupload')
             this.uploadProcess.fileupload('add', {
                 fileInput: $(input)
             });
-            // Clear the input
             $(input).val('');
         },
 
-        // When the cancel-button is pressed
         cancel_uploads: function () {
             // SOMETHING IS NOT WORKING HERE
-            _.each(this.files.models, function (file) {
+            this.files.each(function (file) {
                 file.cancel();
             });
         },
 
-        // When the start-button is pressed
         start_uploads: function () {
-            _.each(this.files.models, function (file) {
+            this.files.each(function (file) {
                 file.start();
             });            
         }

@@ -1,7 +1,5 @@
 define(['backbone'], function (Backbone) {
 	var FormFile = Backbone.DeferedView.extend({
-
-        // Set classname
         className: 'upload-manager-file row-fluid',
 
         events: {
@@ -13,41 +11,26 @@ define(['backbone'], function (Backbone) {
         
         initialize: function () {
             _.bindAll(this);
-            
-            // Set the template to the filetemplate
             this.templateName = this.options.templates.form_file;
             
-            // Listen to model events
-            this.listenTo(this.model, "destroy", this.close);
+            this.listenTo(this.model, "destroy", function () { this.remove() });
             this.listenTo(this.model, "fileprogress", this.updateProgress);
             this.listenTo(this.model, "filefailed", this.hasFailed);
-            this.listenTo(this.model, "filedone", this.hasDone);
+            this.listenTo(this.model, "filedone", this.isDone);
             
-            // Update the view in all cases
             this.listenTo(this.model, "all", this.update);
         },
         
-        /**
-         * Render the filetemplate.
-         * 
-         */
-        render: function ()
-        {
-            // Append the template
+        render: function () {
             $(this.el).html(this.template(this.computeData()));
-            
-            // Update elements
+
             this.update();
         },
-        
-        /**
-         * Update upload progressbar and label.
-         * 
-         */
-        updateProgress: function (progress)
-        {
+
+        updateProgress: function (progress) {
             var percent = parseInt(progress.loaded / progress.total * 100, 10);
             
+            // Change the width of the loading bar aswell as set the progress-text
             this.$el.find('div.progress')
                 .find('.bar')
                 .css('width', percent+'%')
@@ -55,31 +38,16 @@ define(['backbone'], function (Backbone) {
                 .find('.progress-label')
                 .html(this.getHelpers().displaySize(progress.loaded)+' of '+this.getHelpers().displaySize(progress.total));
         },
-        
-        /**
-         * File upload failed, print message.
-         * 
-         */
-        hasFailed: function (error)
-        {
+
+        hasFailed: function (error) {
             this.$el.find('span.message').html('<i class="icon-error"></i> '+error);
         },
-        
-        /**
-         * File upload success, show success
-         * 
-         */
-        hasDone: function (result)
-        {
+
+        isDone: function (result) {
             this.$el.find('span.message').html('<i class="icon-success"></i> Uploaded');
         },
-        
-        /**
-         * Update the necessary parts of the view.
-         * 
-         */
-        update: function ()
-        {
+
+        update: function () {
             // Elements to be shown based on the state of the model.
             var when_pending = this.$el.find('span.size, button#btn-cancel, button#btn-start'),
                 when_running = this.$el.find('div.progress, button#btn-cancel')
@@ -94,13 +62,8 @@ define(['backbone'], function (Backbone) {
                 when_pending.add(when_running).hide();
             }
         },
-        
-        /**
-         * Get the data that will be passed to the view.
-         * 
-         */
-        computeData: function ()
-        {
+
+        computeData: function () {
             return $.extend(this.getHelpers(), this.model.get('data'));
         }
     });

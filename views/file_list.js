@@ -8,10 +8,6 @@ define(['backbone', 'file_collection'], function (Backbone, FileCollection) {
 
 		initialize: function () {
 			_.bindAll(this);
-			this.collection = new FileCollection();
-
-			// Call get files to fetch the files from the local storage
-			this.collection.get_files();
 			this.templateName = "templates/file_list.html";
 		},
 

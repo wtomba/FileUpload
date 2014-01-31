@@ -1,117 +1,56 @@
 define(['backbone'], function (Backbone) {
-	/**
-	 * Model that represents one file
-	 * Events are triggered for the fileview to listen to
-	 * 
-	 */
+	
+	// The events triggered in this model is used in form_file.js, 
+	//the state is used in form_file to determine which elements to be shown in each case.
 	var FileModel = Backbone.Model.extend({
 	    state: "pending",
 	    
-	    /**
-	     * Start upload.
-	     * 
-	     */
-	    start: function ()
-	    {
+	    start: function () {
 	        if (this.isPending()) {
 	            this.get('processor').submit();
-	            
-	            // Set modelstate and trigger event
 	            this.state = "running";
 	            this.trigger('filestarted', this);
 	        }
 	    },
 	    
-	    /**
-	     * Cancel a file upload.
-	     * 
-	     */
-	    cancel: function () 
-	    {
+	    cancel: function () {
 	    	if (this.get('processor')) {
 	        	this.get('processor').abort();
 	    	}
 	        this.destroy();
-	        
-	        // Set modelstate and trigger event
-	        this.state = "canceled";
-	        this.trigger('filecanceled', this);
 	    },
-	    
-	    /**
-	     * Notify file that progress updated.
-	     * 
-	     */
-	    progress: function (data)
-	    {
-	        // Trigger event
+
+	    progress: function (data) {
 	        this.trigger('fileprogress', this.get('processor').progress());
 	    },
-	    
-	    /**
-	     * Notify file that upload failed.
-	     * 
-	     */
-	    fail: function (error)
-	    {
-	        // Set modelstate and trigger event
+
+	    fail: function (error) {
 	        this.state = "error";
 	        this.trigger('filefailed', error);
 	    },
-	    
-	    /**
-	     * Notify file that upload is done.
-	     * 
-	     */
-	    done: function (result)
-	    {
-	        // Set modelstate and trigger event
+
+	    done: function (result) {
 	        this.state = "done";
 	        this.trigger('filedone', result);
 	    },
-	    
-	    /**
-	     * Is this file pending to be uploaded?
-	     * 
-	     */
-	    isPending: function ()
-	    {
+
+	    isPending: function () {
 	        return this.getState() == "pending";
 	    },
-	    
-	    /**
-	     * Is this file currently uploading?
-	     * 
-	     */
-	    isRunning: function ()
-	    {
+
+	    isRunning: function () {
 	        return this.getState() == "running";
 	    },
-	    
-	    /**
-	     * Is this file uploaded?
-	     * 
-	     */
-	    isDone: function ()
-	    {
+
+	    isDone: function () {
 	        return this.getState() == "done";
 	    },
-	    
-	    /**
-	     * Does the upload have an error?
-	     * 
-	     */
-	    isError: function ()
-	    {
+
+	    isError: function () {
 	        return this.getState() == "error" || this.getState == "canceled";
 	    },
-	    
-	    /**
-	     * Returns the current modelstate
-	     * 
-	     */
-	    getState: function ()
-	    {
+
+	    getState: function () {
 	        return this.state;
 	    }
 	});
